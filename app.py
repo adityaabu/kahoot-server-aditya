@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 
-# Proses Create, Get Quiz
+#-------------------- Proses Create, Get, Update & Delete Quiz --------------------
 @app.route('/quiz', methods=['POST'])
 def createQuiz():
     body = json.dumps(request.json)
@@ -29,7 +29,7 @@ def createQuiz():
 
     return str(quizData)
 
-@app.route('/quizzes/<quizId>', methods=['GET'])
+@app.route('/quizzes/<quizId>')
 def getQuiz(quizId):
     # nyari quiznya
     quizzesFile = open('./quizzes-file.json')
@@ -84,28 +84,49 @@ def deleteQuiz(quizId):
     # get data from question-file.json 
     quizzesFile = open("./quizzes-file.json")
     quizzesData = json.load(quizzesFile)
+
+    questionFile = open("./question-file.json")
+    questionData = json.load(questionFile)
+
     quizData = {
         "totalQuizAvailable": 0,
         "quizzes": []
     }
+
+    questionUpdate = {
+        "questions": []
+    }
+
     message = "Quiz-id : " + quizId +"gagal di hapus "
+
     for quiz in quizzesData["quizzes"]:
         quiz = json.loads(quiz)
         if quiz["quiz-id"] == int(quizId):
-            message = "Quiz-id : " + quizId +"berhasil di hapus "
+            message = "Quiz-id : " + quizId +" berhasil di hapus "
             pass
         else:
             quiz = json.dumps(quiz)
             quizData["totalQuizAvailable"] += 1
             quizData["quizzes"].append(quiz)
             
-        
+    for question in questionData["questions"]:
+        question = json.loads(question)
+        if question["quiz-id"] == int(quizId):
+            pass
+        else:
+            question = json.dumps(question)
+            questionUpdate["questions"].append(question)
+
     quizzesFile = open('./quizzes-file.json', 'w')
     quizzesFile.write(str(json.dumps(quizData)))
+    questionFile = open('./question-file.json', 'w')
+    questionFile.write(str(json.dumps(questionUpdate)))
+
+
 
     return message
 
-# bikin soal untuk kuis yang udah ada
+#-------------------- Proses Create, Get, Update & Delete Question --------------------
 @app.route('/question', methods=['POST'])
 def createQuestion():
     body = json.dumps(request.json)
@@ -128,6 +149,60 @@ def createQuestion():
 
     return str(questionData)
 
+@app.route('/quizzes/<quizId>/questions/<questionNumber>', methods=['PUT'])
+def updateQuestion(quizId, questionNumber):
+    body = json.dumps(request.json)
+
+    # get data from question-file.json 
+    questionFile = open("./question-file.json")
+    questionData = json.load(questionFile)
+
+    questionUpdate = {
+        "questions": []
+    }
+    message = "Question no. "+ questionNumber + " dengan quiz-id: " + quizId + " gagal di update."
+    for question in questionData["questions"]:
+        question = json.loads(question)
+        if question["quiz-id"] == int(quizId) and question["question-number"] == int(questionNumber):
+            questionUpdate["questions"].append(body)
+            message = "Question no. "+ questionNumber + " dengan quiz-id: " + quizId + " berhasil di update."
+        else:
+            question = json.dumps(question)
+            questionUpdate["questions"].append(question)
+            
+        
+    questionFile = open('./question-file.json', 'w')
+    questionFile.write(str(json.dumps(questionUpdate)))
+
+    return message
+
+@app.route('/quizzes/<quizId>/questions/<questionNumber>', methods=['DELETE'])
+def deleteQuestion(quizId, questionNumber):
+
+    # get data from question-file.json 
+    questionFile = open("./question-file.json")
+    questionData = json.load(questionFile)
+
+    questionUpdate = {
+        "questions": []
+    }
+    message = "Question no. "+ questionNumber + " dengan quiz-id: " + quizId + " gagal di update."
+
+    for question in questionData["questions"]:
+        question = json.loads(question)
+        if question["quiz-id"] == int(quizId) and question["question-number"] == int(questionNumber):
+            message = "Question no. "+ questionNumber + " dengan quiz-id: " + quizId + " berhasil di update."
+            pass
+        else:
+            question = json.dumps(question)
+            questionUpdate["questions"].append(question)
+            
+        
+    questionFile = open('./question-file.json', 'w')
+    questionFile.write(str(json.dumps(questionUpdate)))
+
+    return message
+
 # minta data sebuah soal untuk kuis tertentu
 @app.route('/quizzes/<quizId>/questions/<questionNumber>')
 def getThatQuestion(quizId, questionNumber):
@@ -138,7 +213,8 @@ def getThatQuestion(quizId, questionNumber):
             return jsonify(question)
 
 
-# bikin game baru
+#-------------------- Proses Create, Join, Answer & Leaderboard Game --------------------
+
 @app.route('/game', methods=["POST"])
 def createGame():
     body = request.json
@@ -272,7 +348,7 @@ def getLeaderboard():
             # TODO: sorting dari yang paling gede ke kecil
             return jsonify(game["leaderboard"])
 
-##################### Proses Sign Up #####################
+#-------------------- Proses Sign Up, Sign In & Enkripsi dengan Caesar Cipher --------------------
 @app.route('/signup', methods=["POST"])
 def getSignUp():
     body = request.json
@@ -280,12 +356,12 @@ def getSignUp():
     if body["username"] == body["password"]:
         return "password tidak boleh sama dengan username"
 
-    # <proses encrypsi password>
+    # <proses enkripsi password>
     
     shift = 4 
     body["password"] = encrypt(body["password"],shift)
     
-    #</proses encripsi password>
+    #</proses enkripsi password>
 
     usernameData = {
         "username-list" : []
@@ -310,12 +386,12 @@ def getSignIn():
     usernameFile = open('./username-file.json')
     usernameData = json.load(usernameFile)
     
-    # <proses encryp password>
+    # <proses enkripsi password>
     
     shift = 4 
     body["password"] = encrypt(body["password"],shift)
     
-    #</proses encryp password>
+    #</proses encripsi password>
 
     for username in usernameData["username-list"]:
         if  username["username"] != body["username"]:
