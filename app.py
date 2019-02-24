@@ -63,23 +63,47 @@ def updateQuiz(quizId):
         "totalQuizAvailable": quizzesData["totalQuizAvailable"],
         "quizzes": []
     }
-    
+    message = "Quiz-id gagal di update " + quizId
     for quiz in quizzesData["quizzes"]:
         quiz = json.loads(quiz)
         if quiz["quiz-id"] == int(quizId):
             quizData["quizzes"].append(body)
-            message = "Quiz-id berhasil di update" + quizId
+            message = "Quiz-id berhasil di update " + quizId
         else:
             quiz = json.dumps(quiz)
             quizData["quizzes"].append(quiz)
-            message = "Quiz-id gagal di update" + quizId
+            
         
     quizzesFile = open('./quizzes-file.json', 'w')
     quizzesFile.write(str(json.dumps(quizData)))
 
-
     return message
 
+@app.route('/quizzes/<quizId>', methods=['DELETE'])
+def deleteQuiz(quizId):
+    # get data from question-file.json 
+    quizzesFile = open("./quizzes-file.json")
+    quizzesData = json.load(quizzesFile)
+    quizData = {
+        "totalQuizAvailable": 0,
+        "quizzes": []
+    }
+    message = "Quiz-id : " + quizId +"gagal di hapus "
+    for quiz in quizzesData["quizzes"]:
+        quiz = json.loads(quiz)
+        if quiz["quiz-id"] == int(quizId):
+            message = "Quiz-id : " + quizId +"berhasil di hapus "
+            pass
+        else:
+            quiz = json.dumps(quiz)
+            quizData["totalQuizAvailable"] += 1
+            quizData["quizzes"].append(quiz)
+            
+        
+    quizzesFile = open('./quizzes-file.json', 'w')
+    quizzesFile.write(str(json.dumps(quizData)))
+
+    return message
 
 # bikin soal untuk kuis yang udah ada
 @app.route('/question', methods=['POST'])
@@ -103,34 +127,7 @@ def createQuestion():
     questionFile.write(str(json.dumps(questionData)))
 
     return str(questionData)
-def editQuiz(quizId):
-    body = request.json
 
-    # get data from question-file.json 
-    quizzesFile = open("./question-file.json")
-    quizzesData = json.load(quizzesFile)
-
-    position = 0
-    for i in range(len(quizzesData["quizzes"])):
-        quiz = quizzesData["quizzes"][i]
-        
-        if quiz["quiz-id"] == int(quizId):
-            quiz["quiz-id"] = body["quiz-id"]
-            quiz["quiz-name"] = body["quiz-name"]
-            quiz["quiz-category"] = body["quiz-category"]
-            
-            quizzesInfo = quiz
-            message = "Quiz-id berhasil di update" + quizId
-            position = i
-            break
-        else:
-            message = "Quiz-id gagal di update" + quizId
-        
-    with open('./question-file.json', 'w') as quizzesData:
-        quizzesData["quizzes"][position] = quizzesInfo
-        quizzesFile.write(str(json.dumps(quizzesData)))
-
-    return message
 # minta data sebuah soal untuk kuis tertentu
 @app.route('/quizzes/<quizId>/questions/<questionNumber>')
 def getThatQuestion(quizId, questionNumber):
