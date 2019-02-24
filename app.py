@@ -292,6 +292,7 @@ def encrypt(password,shift):
     return encryptPassword
 
 # Proses Edit Quiz
+@app.route('/quizzes/edit/<quizId>', methods=["PUT", "DELETE"])
 def editQuiz(quizId):
     body = request.json
 
