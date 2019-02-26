@@ -1,7 +1,8 @@
-from flask import Flask, request, json, jsonify
+from flask import Flask, request, json, jsonify, g
 import os
 from . import router, baseLocation
 from ..utils.file import readFile, writeFile, checkFile
+from ..utils.auth import verifySignIn
 
 quizzesFileLocation = baseLocation / "data" / "quizzes-file.json"
 questionsFileLocation = baseLocation / "data" / "question-file.json"
@@ -10,9 +11,10 @@ questionsData = readFile(questionsFileLocation)
 
 #-------------------- Proses Create, Get, Update & Delete Quiz --------------------
 @router.route('/quiz', methods=['POST'])
+@verifySignIn
 def createQuiz():
     body = json.dumps(request.json)
-
+    print ("quuz", g.username)
     quizData = {
         "totalQuizAvailable": 0,
         "quizzes": []
@@ -31,6 +33,7 @@ def createQuiz():
     return str(quizData)
 
 @router.route('/quizzes/<quizId>')
+@verifySignIn
 def getQuiz(quizId):
     
     for quiz in quizzesData["quizzes"]:
@@ -47,6 +50,7 @@ def getQuiz(quizId):
     return jsonify(quizData)
 
 @router.route('/quizzes/<quizId>', methods=['PUT'])
+@verifySignIn
 def updateQuiz(quizId):
     body = json.dumps(request.json)
 
@@ -73,6 +77,7 @@ def updateQuiz(quizId):
     return message
 
 @router.route('/quizzes/<quizId>', methods=['DELETE'])
+@verifySignIn
 def deleteQuiz(quizId):
 
     quizData = {
@@ -112,6 +117,7 @@ def deleteQuiz(quizId):
     return message
 # minta data sebuah soal untuk kuis tertentu
 @router.route('/quizzes/<quizId>/questions/<questionNumber>')
+@verifySignIn
 def getThatQuestion(quizId, questionNumber):
     quizData = getQuiz(int(quizId)).json
 

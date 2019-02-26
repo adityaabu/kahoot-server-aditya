@@ -2,13 +2,13 @@ from flask import Flask, request, json, jsonify
 import os
 from . import router, baseLocation
 from ..utils.crypt import encrypt
+from ..utils.auth import generateToken
 
 userFileLocation = baseLocation / "data" / "user-file.json"
 
 @router.route('/signup', methods=["POST"])
 def getSignUp():
     body = request.json
-    print(os.getenv('API_KEY'))
     if body["username"] == body["password"]:
         return "password tidak boleh sama dengan username"
 
@@ -41,7 +41,7 @@ def getSignIn():
     body = request.json
     usernameFile = open(userFileLocation)
     usernameData = json.load(usernameFile)
-    
+    isLogin = False
     # <proses enkripsi password>
     
     shift = 4 
@@ -54,8 +54,14 @@ def getSignIn():
             return "username tidak terdaftar"
         
         elif  username["username"]  == body["username"] and username["password"] == body["password"]:
-            return "password dan username benar"
+            body["token"] = generateToken(body["username"])
+            # return "login berhasil
+            isLogin = True
+            body["status"]= isLogin 
+            return jsonify(body)
         elif  username["username"]  == body["username"] and username["password"] != body["password"]:
             return "password tidak benar"
+    
 
+    
 
