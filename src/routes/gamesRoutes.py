@@ -2,6 +2,8 @@ from flask import request, json, jsonify
 from random import randint
 import os
 from . import router,baseLocation
+from ..utils.auth import verifySignIn
+
 gamesFileLocation = baseLocation / "data" / "games-file.json"
 quizzesFileLocation = baseLocation / "data" / "quizzes-file.json"
 questionsFileLocation = baseLocation / "data" / "questions-file.json"
@@ -9,6 +11,7 @@ questionsFileLocation = baseLocation / "data" / "questions-file.json"
 #-------------------- Proses Create, Join, Answer & Leaderboard Game --------------------
 
 @router.route('/game', methods=["POST"])
+@verifySignIn
 def createGame():
     body = request.json
 

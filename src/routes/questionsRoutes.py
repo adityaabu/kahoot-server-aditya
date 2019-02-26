@@ -1,11 +1,13 @@
 from flask import Flask, request, json, jsonify
 import os
 from . import router, baseLocation
+from ..utils.auth import verifySignIn
 
 questionsFileLocation = baseLocation / "data" / "question-file.json"
 
 #-------------------- Proses Create, Get, Update & Delete Question --------------------
 @router.route('/question', methods=['POST'])
+@verifySignIn
 def createQuestion():
     body = json.dumps(request.json)
 
@@ -28,6 +30,7 @@ def createQuestion():
     return str(questionData)
 
 @router.route('/quizzes/<quizId>/questions/<questionNumber>', methods=['PUT'])
+@verifySignIn
 def updateQuestion(quizId, questionNumber):
     body = json.dumps(request.json)
 
@@ -55,6 +58,7 @@ def updateQuestion(quizId, questionNumber):
     return message
 
 @router.route('/quizzes/<quizId>/questions/<questionNumber>', methods=['DELETE'])
+@verifySignIn
 def deleteQuestion(quizId, questionNumber):
 
     # get data from question-file.json 
