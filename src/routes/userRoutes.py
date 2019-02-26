@@ -8,7 +8,7 @@ userFileLocation = baseLocation / "data" / "user-file.json"
 @router.route('/signup', methods=["POST"])
 def getSignUp():
     body = request.json
-    
+    print(os.getenv('API_KEY'))
     if body["username"] == body["password"]:
         return "password tidak boleh sama dengan username"
 

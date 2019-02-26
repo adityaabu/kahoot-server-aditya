@@ -1,8 +1,7 @@
-from flask import Flask, request, json, jsonify
+from flask import request, json, jsonify
 from random import randint
 import os
-from . import router, baseLocation
-
+from . import router,baseLocation
 gamesFileLocation = baseLocation / "data" / "games-file.json"
 quizzesFileLocation = baseLocation / "data" / "quizzes-file.json"
 questionsFileLocation = baseLocation / "data" / "questions-file.json"

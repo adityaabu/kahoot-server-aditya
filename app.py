@@ -1,6 +1,4 @@
-from flask import Flask, request, json, jsonify
-# import requests
-import os
+from flask import Flask
 from src.routes import router
 app = Flask(__name__)
 app.register_blueprint(router)

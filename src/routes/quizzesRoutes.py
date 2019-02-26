@@ -1,10 +1,12 @@
 from flask import Flask, request, json, jsonify
 import os
 from . import router, baseLocation
+from ..utils.file import readFile, writeFile, checkFile
 
 quizzesFileLocation = baseLocation / "data" / "quizzes-file.json"
 questionsFileLocation = baseLocation / "data" / "question-file.json"
-
+quizzesData = readFile(quizzesFileLocation)
+questionsData = readFile(questionsFileLocation)
 
 #-------------------- Proses Create, Get, Update & Delete Quiz --------------------
 @router.route('/quiz', methods=['POST'])
@@ -24,27 +26,18 @@ def createQuiz():
 
     quizData["totalQuizAvailable"] += 1
     quizData["quizzes"].append(body)
-
-    quizzesFile = open(quizzesFileLocation, 'w')
-    quizzesFile.write(str(json.dumps(quizData)))
+    writeFile(quizzesFileLocation,quizData)
 
     return str(quizData)
 
 @router.route('/quizzes/<quizId>')
 def getQuiz(quizId):
-    # nyari quiznya
-    quizzesFile = open(quizzesFileLocation)
-    quizzesData = json.load(quizzesFile)
-
+    
     for quiz in quizzesData["quizzes"]:
         quiz = json.loads(quiz)
         if quiz["quiz-id"] == int(quizId):
             quizData = quiz
             break
-
-    # nyari soalnya
-    questionsFile = open(questionsFileLocation)
-    questionsData = json.load(questionsFile)
 
     for question in questionsData["questions"]:
         question = json.loads(question)
@@ -57,13 +50,11 @@ def getQuiz(quizId):
 def updateQuiz(quizId):
     body = json.dumps(request.json)
 
-    # get data from question-file.json 
-    quizzesFile = open("./quizzes-file.json")
-    quizzesData = json.load(quizzesFile)
     quizData = {
         "totalQuizAvailable": quizzesData["totalQuizAvailable"],
         "quizzes": []
     }
+
     message = "Quiz-id gagal di update " + quizId
     for quiz in quizzesData["quizzes"]:
         quiz = json.loads(quiz)
@@ -77,17 +68,12 @@ def updateQuiz(quizId):
         
     quizzesFile = open(quizzesFileLocation, 'w')
     quizzesFile.write(str(json.dumps(quizData)))
+    
 
     return message
 
 @router.route('/quizzes/<quizId>', methods=['DELETE'])
 def deleteQuiz(quizId):
-    # get data from question-file.json 
-    quizzesFile = open(quizzesFileLocation)
-    quizzesData = json.load(quizzesFile)
-
-    questionFile = open(questionsFileLocation)
-    questionData = json.load(questionFile)
 
     quizData = {
         "totalQuizAvailable": 0,
@@ -110,7 +96,7 @@ def deleteQuiz(quizId):
             quizData["totalQuizAvailable"] += 1
             quizData["quizzes"].append(quiz)
             
-    for question in questionData["questions"]:
+    for question in questionsData["questions"]:
         question = json.loads(question)
         if question["quiz-id"] == int(quizId):
             pass
@@ -122,8 +108,6 @@ def deleteQuiz(quizId):
     quizzesFile.write(str(json.dumps(quizData)))
     questionFile = open(questionsFileLocation, 'w')
     questionFile.write(str(json.dumps(questionUpdate)))
-
-
 
     return message
 # minta data sebuah soal untuk kuis tertentu
