@@ -13,9 +13,9 @@ def verifySignIn(f):
     @wraps(f)
     def decoratedFunction(*args, **kwargs):
         # body = request.json
-        token = request.headers["Authorization"] #"Authorization" itu di insomnia tab header, lalu di samping header [value] isinya Bearer <token>
+        token = request.headers["Authorization"][7:] #"Authorization" itu di insomnia tab header, lalu di samping header [value] isinya Bearer <token>
         data = decode(token)
-        username = encrypt(data["fata"],4)
+        username = encrypt(data["data"],4)
 
         g.username = username
         print ("lewat decorator")

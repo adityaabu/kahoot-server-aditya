@@ -6,6 +6,11 @@ from ..utils.auth import generateToken
 
 userFileLocation = baseLocation / "data" / "user-file.json"
 
+@router.route('/cekToken')
+def cekToken():
+    token = request.headers["Authorization"][7:]
+    return (token)
+
 @router.route('/signup', methods=["POST"])
 def getSignUp():
     body = request.json

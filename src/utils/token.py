@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 def encode(data):
     payload = {
         "data" : data,
-        "exp" : datetime.utcnow() +  timedelta(seconds=30),
+        "exp" : datetime.utcnow() +  timedelta(days=1),
         "iat" : datetime.now()
     }
     encoded = jwt.encode(payload,"kucing-merah",algorithm="HS256").decode('utf-8')
