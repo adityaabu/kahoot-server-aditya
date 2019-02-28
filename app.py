@@ -15,7 +15,7 @@ def errorhandler403(e):
     print ("soal tsb gx ada")
     return ("error 410 cuy")
 
-@app.route ('/penjumlahan/<firstNumber>/<secondNumber>')
+@app.route ('/penjumlahan/<firstNumber>/<secondNumbergit>')
 def penjumlahan (firstNumber,secondNumber):
     return jsonify({
         "hasil jumlah":firstNumber+secondNumber
