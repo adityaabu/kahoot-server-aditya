@@ -8,8 +8,7 @@ def readFile(fileLocation):
     theFile = open(fileLocation)
     return json.load(theFile)
 
-def checkFile(fileLocation, theData):
+def checkFile(fileLocation):
     if os.path.exists(fileLocation):
         theFile = open(fileLocation, 'r')
-        theData = json.load(theFile)
-        return theData
+        return json.load(theFile)

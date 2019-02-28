@@ -6,44 +6,63 @@ from ..utils.auth import verifySignIn
 
 quizzesFileLocation = baseLocation / "data" / "quizzes-file.json"
 questionsFileLocation = baseLocation / "data" / "question-file.json"
-quizzesData = readFile(quizzesFileLocation)
-questionsData = readFile(questionsFileLocation)
+
+try:
+    quizzesData = readFile(quizzesFileLocation)
+except: 
+    print ("Quizzes file not found")
+
+try:
+    questionsData = readFile(questionsFileLocation)
+except:
+    print ("Question file not found")
+
+# questionsData = readFile(questionsFileLocation)
+# quizzesData = readFile(quizzesFileLocation)
+
 
 #-------------------- Proses Create, Get, Update & Delete Quiz --------------------
 @router.route('/quiz', methods=['POST'])
 @verifySignIn
 def createQuiz():
-    body = json.dumps(request.json)
+    # body = json.dumps(request.json)
+    body = request.json
     print ("quuz", g.username)
     quizData = {
         "totalQuizAvailable": 0,
         "quizzes": []
     }
+    message={}
 
-    if os.path.exists(quizzesFileLocation):
-        quizzesFile = open(quizzesFileLocation, 'r')
-        quizData = json.load(quizzesFile)
-    else:
-        quizzesFile = open(quizzesFileLocation, 'x')
+    quizData = checkFile(quizzesFileLocation)
+   
+    isNotUsed = False
+    for quiz in quizzesData["quizzes"]:
+        if quiz["quiz-id"] == body["quiz-id"]:
+            isNotUsed = False
+            message["error"]= "quiz-id sudah ada"
+        else:
+            isNotUsed = True
 
-    quizData["totalQuizAvailable"] += 1
-    quizData["quizzes"].append(body)
-    writeFile(quizzesFileLocation,quizData)
 
-    return str(quizData)
+    if isNotUsed == True :
+        quizData["totalQuizAvailable"] += 1
+        quizData["quizzes"].append(body)
+        writeFile(quizzesFileLocation,quizData)
+        message["status"] = "Quiz berhasil di buat."
+
+    return jsonify(message)
 
 @router.route('/quizzes/<quizId>')
 @verifySignIn
 def getQuiz(quizId):
     
     for quiz in quizzesData["quizzes"]:
-        quiz = json.loads(quiz)
         if quiz["quiz-id"] == int(quizId):
             quizData = quiz
             break
 
     for question in questionsData["questions"]:
-        question = json.loads(question)
         if question["quiz-id"] == int(quizId):
             quizData["question-list"].append(question)
 
@@ -52,7 +71,7 @@ def getQuiz(quizId):
 @router.route('/quizzes/<quizId>', methods=['PUT'])
 @verifySignIn
 def updateQuiz(quizId):
-    body = json.dumps(request.json)
+    body = request.json
 
     quizData = {
         "totalQuizAvailable": quizzesData["totalQuizAvailable"],

@@ -1,8 +1,11 @@
-from flask import Flask, request, json, jsonify
 import os
-from . import router, baseLocation
+
 from ..utils.crypt import encrypt
+from . import router, baseLocation
 from ..utils.auth import generateToken
+from flask import Flask, request, json, jsonify
+from ..utils.file import readFile, writeFile, checkFile
+
 
 userFileLocation = baseLocation / "data" / "user-file.json"
 
@@ -14,59 +17,92 @@ def cekToken():
 @router.route('/signup', methods=["POST"])
 def getSignUp():
     body = request.json
-    if body["username"] == body["password"]:
-        return "password tidak boleh sama dengan username"
-
-    # <proses enkripsi password>
-    
-    shift = 4 
-    body["password"] = encrypt(body["password"],shift)
-    
-    #</proses enkripsi password>
+    isNotUsed=False
 
     usernameData = {
         "username-list" : []
     }
 
-    if os.path.exists(userFileLocation):
-        usernameFile = open(userFileLocation, 'r')
-        usernameData = json.load(usernameFile)
+    message ={}
+    
+    usernameData = checkFile(userFileLocation)
+    
+    if body["username"] == body["password"]:
+        print ("check password")
+        return "password tidak boleh sama dengan username"
+
     else:
-        usernameFile = open(userFileLocation, 'x')
 
-    with open(userFileLocation, 'w') as usernameFile:
-        usernameData["username-list"].append(body)
-        usernameFile.write(str(json.dumps(usernameData)))
+        for username in usernameData["username-list"]:
+        
+            if  username["username"] == body["username"]:
+                print ("username sudah digunakan")
+                isNotUsed=False
+                message["username"] = body["username"]
+                message["email"] = body["email"]
+                message["status"] = "Username sudah digunakan"
+                break
+                
+            elif username["email"] == body["email"]:
+                print ("Email sudah digunakan")
+                message["username"] = body["username"]
+                message["email"] = body["email"]
+                message["status"] = "Password sudah digunakan"
+                isNotUsed=False
+                break   
 
-    return jsonify(request.json)
+            else:
+                print ("username tidak ada")
+                isNotUsed=True
 
-# Proses Sign Up #
+        if isNotUsed==True:
+            
+            shift = 4 
+            body["password"] = encrypt(body["password"],shift)
+            message["username"] = body["username"]
+            message["email"] = body["email"]
+            message["password"] = body["password"]
+            message["status"] = "Berhasil Sign Up"
+
+            with open(userFileLocation, 'w') as usernameFile:
+                usernameData["username-list"].append(body)
+                usernameFile.write(str(json.dumps(usernameData)))
+            
+    return jsonify(message)
+
 @router.route('/signin', methods=["POST"])
 def getSignIn():
     body = request.json
-    usernameFile = open(userFileLocation)
-    usernameData = json.load(usernameFile)
+    usernameData = readFile(userFileLocation)
     isLogin = False
-    # <proses enkripsi password>
-    
     shift = 4 
     body["password"] = encrypt(body["password"],shift)
     
-    #</proses encripsi password>
-
     for username in usernameData["username-list"]:
-        if  username["username"] != body["username"]:
-            return "username tidak terdaftar"
         
-        elif  username["username"]  == body["username"] and username["password"] == body["password"]:
-            body["token"] = generateToken(body["username"])
-            # return "login berhasil
-            isLogin = True
+        if  username["username"] != body["username"]:
+            print (username["username"])
+            print (body["username"])
+            print ("username tidak terdaftar")
+            isLogin = False
+            body["message"] = "username tidak terdaftar"
             body["status"]= isLogin 
-            return jsonify(body)
-        elif  username["username"]  == body["username"] and username["password"] != body["password"]:
-            return "password tidak benar"
+        
+        elif  username["password"]  != body["password"]:
+            print ("Password Salah")
+            isLogin = False
+            body["message"] = "Password Salah"
+            body["status"]= isLogin 
     
+        else:
+            isLogin = True
+            body["status"]= isLogin
+            body["message"] = "Berhasil Sign In"
+            body.pop("password")
+            body["token"] = generateToken(body["username"])
+            break
+
+    return jsonify(body)
 
     
 
